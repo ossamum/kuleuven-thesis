@@ -11,7 +11,8 @@ QUERY_LIST = [
     "hapishane",
     "hukuksuzluk",
     "torture",
-    "stop torture" "istanbul sözleşmesi",
+    "stop torture",
+    "istanbul sözleşmesi",
 ]
 # ##################################################### PARAMETERS #####################################################
 

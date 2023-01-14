@@ -21,5 +21,15 @@ def get_tweepy_client() -> tweepy.Client:
         access_token_secret=TWITTER_API_ACCESS_TOKEN_SECRET,
     )
 
-    print("TWEEPY API client is successfully created...")
+    print("TWEEPY client is successfully created...")
     return tweepy_client
+
+
+def get_tweepy_api() -> tweepy.API:
+    auth = tweepy.OAuthHandler(TWITTER_API_KEY, TWITTER_API_KEY_SECRET)
+    auth.set_access_token(TWITTER_API_ACCESS_TOKEN, TWITTER_API_ACCESS_TOKEN_SECRET)
+
+    tweepy_api = tweepy.API(auth=auth)
+
+    print("TWEEPY api is successfully created...")
+    return tweepy_api

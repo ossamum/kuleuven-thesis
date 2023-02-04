@@ -1,11 +1,14 @@
+import time
 from datetime import datetime, timezone
 
+import pandas as pd
 import tweepy
 
 from utils import get_tweepy_api
 
 # ##################################################### PARAMETERS #####################################################
 QUERY_LIST = [
+    "insan hakları aktivisti",
     "insan hakları",
     "khk",
     "LGBT",
@@ -18,12 +21,13 @@ QUERY_LIST = [
     "stop torture Turkey",
     "istanbul sözleşmesi",
 ]
+CSV_PATH = "users_found_with_keywords.csv"
 # ##################################################### PARAMETERS #####################################################
 
 api = get_tweepy_api()
 
 
-def is_user_valid(api: tweepy.API, user: tweepy.User) -> bool:
+def is_user_valid(api: tweepy.API, user: tweepy.User, retry_count: int = 0) -> bool:
     if user.statuses_count > 100:
         try:
             last_tweet = api.user_timeline(user_id=user.id)[0]
@@ -31,22 +35,51 @@ def is_user_valid(api: tweepy.API, user: tweepy.User) -> bool:
                 return True
         except tweepy.errors.Unauthorized:
             print(f"Received Unauthorized Error for user with screen name: {user.screen_name}")
+        except IndexError:
+            print(f"The user with screen name {user.screen_name} seems not to have any tweet")
+        except tweepy.errors.TweepyException as e:
+            if retry_count > 10:
+                raise e
+            retry_count += 1
+            print(f"Received TweepyException Error, retrying one more time: retry count {retry_count}. \n\n Error: {e}")
+            time.sleep(1)
+            return is_user_valid(api, user, retry_count)
     return False
 
 
 queried_user_ids = set()
 for query in QUERY_LIST:
     print(f"Starting querying {query}...\n\n")
-    for page in range(100):
+    n_last_page_user_found = 0
+    for page in range(50):
         print(f"\nRetrieving results for {query} with page {page}\n")
-        response = api.search_users(q=query, page=page)
+        response = api.search_users(q=query, page=page, count=20)
 
+        users_df = pd.DataFrame()
         new_user_found = False
         for user in response:
             if user.id not in queried_user_ids and is_user_valid(api, user):
                 print(f"Found user with screen name: {user.screen_name}")
                 queried_user_ids.add(user.id)
+                user_dict = {
+                    "id": user.id,
+                    "full name": user.name,
+                    "screen_name": user.screen_name,
+                    "method_to_find": "keyword search",
+                    "location": user.location,
+                }
+
+                users_df = pd.concat([users_df, pd.DataFrame([user_dict])], ignore_index=True)
+
+                n_last_page_user_found = 0
                 new_user_found = True
-        if not new_user_found:  # Break the pagination loop to continue the next query
+        users_df.to_csv(CSV_PATH, mode="a", header=False)
+        if not new_user_found:
+            n_last_page_user_found += 1
+        if n_last_page_user_found > 5:  # Break the pagination loop to continue the next query, if no new user found
+            # after 5 page results
             break
     print("\n\n")
+
+
+print(f"Total number of found users: {len(users_df)}")

@@ -1,5 +1,6 @@
 # python packages for project
 tweepy==4.10.0
+pandas==1.5.3
 
 # python packages for formatting
 black==22.12.0

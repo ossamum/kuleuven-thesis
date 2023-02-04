@@ -29,7 +29,7 @@ def get_tweepy_api() -> tweepy.API:
     auth = tweepy.OAuthHandler(TWITTER_API_KEY, TWITTER_API_KEY_SECRET)
     auth.set_access_token(TWITTER_API_ACCESS_TOKEN, TWITTER_API_ACCESS_TOKEN_SECRET)
 
-    tweepy_api = tweepy.API(auth=auth)
+    tweepy_api = tweepy.API(auth=auth, wait_on_rate_limit=True, retry_count=5)
 
     print("TWEEPY api is successfully created...")
     return tweepy_api

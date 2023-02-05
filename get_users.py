@@ -82,4 +82,10 @@ for query in QUERY_LIST:
     print("\n\n")
 
 
+users_df = pd.read_csv(
+    CSV_PATH, index_col=0, header=None, names=["user_id", "full_name", "screen_name", "method_to_find", "location"]
+)
+users_df.reset_index(inplace=True, drop=True)
+users_df.to_excel("users_found_with_keywords.xlsx")
+
 print(f"Total number of found users: {len(users_df)}")

@@ -40,7 +40,7 @@ def get_tweepy_api() -> tweepy.API:
     return tweepy_api
 
 
-def get_all_user_tweets(tweepy_client, query, years=1, days_range=10) -> pd.DataFrame:
+def get_all_user_tweets(tweepy_client: tweepy.Client, query: str, years: int = 1, days_range: int = 10) -> pd.DataFrame:
     """Get all tweets from a given user
     Example of query: from: mehdizana_ -is:retweet
     """

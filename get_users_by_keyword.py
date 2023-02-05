@@ -21,7 +21,7 @@ QUERY_LIST = [
     "stop torture Turkey",
     "istanbul sözleşmesi",
 ]
-CSV_PATH = "users_found_with_keywords.csv"
+CSV_PATH = "archive/users_found_with_keywords.csv"
 # ##################################################### PARAMETERS #####################################################
 
 api = get_tweepy_api()
@@ -77,11 +77,13 @@ for query in QUERY_LIST:
         if not new_user_found:
             n_last_page_user_found += 1
         if n_last_page_user_found > 5:  # Break the pagination loop to continue the next query, if no new user found
-            # after 5 page results
+            # after 5-page results
             break
     print("\n\n")
 
 
+# I know this is VERY INEFFICIENT. I use the below code to convert csv into excel. Append mode in excel isn't
+# straightforward based on this (https://stackoverflow.com/a/64824686/11758585)
 users_df = pd.read_csv(
     CSV_PATH, index_col=0, header=None, names=["user_id", "full_name", "screen_name", "method_to_find", "location"]
 )

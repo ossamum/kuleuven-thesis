@@ -6,6 +6,10 @@ import tweepy
 
 from utils import get_tweepy_api
 
+# TODO: add "insan haklari savunucusu", "LGBT Dayanisma", "lezbiyen", "gay", "escinsel", "kadinsavunmasi", "esitlik",
+#  "LGBTI Turkiye", "Kadin haklari", "Kırmızı Şemsiye"
+# TODO: add used keyword to find the account
+
 # ##################################################### PARAMETERS #####################################################
 QUERY_LIST = [
     "insan hakları aktivisti",

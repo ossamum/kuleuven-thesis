@@ -24,6 +24,7 @@ def get_tweepy_client() -> tweepy.Client:
         consumer_secret=TWITTER_API_KEY_SECRET,
         access_token=TWITTER_API_ACCESS_TOKEN,
         access_token_secret=TWITTER_API_ACCESS_TOKEN_SECRET,
+        wait_on_rate_limit=True,
     )
 
     print("TWEEPY client is successfully created...")
@@ -52,8 +53,7 @@ def get_all_user_tweets(tweepy_client: tweepy.Client, query: str, years: int = 1
     num_iter = math.ceil(years * 365 / days_range)
 
     all_tweets = []
-    for i in range(num_iter):
-
+    for _ in range(num_iter):
         tweets = tweepy_client.search_all_tweets(
             query=query,
             tweet_fields=[
@@ -94,6 +94,4 @@ def get_all_user_tweets(tweepy_client: tweepy.Client, query: str, years: int = 1
 
         sleep(1)
 
-    all_tweets = pd.DataFrame(all_tweets)
-
-    return all_tweets
+    return pd.DataFrame(all_tweets)

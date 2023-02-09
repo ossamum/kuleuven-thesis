@@ -1,5 +1,6 @@
 import math
-from datetime import datetime, timedelta
+import time
+from datetime import datetime, timedelta, timezone
 from time import sleep
 
 import pandas as pd
@@ -95,3 +96,26 @@ def get_all_user_tweets(tweepy_client: tweepy.Client, query: str, years: int = 1
         sleep(1)
 
     return pd.DataFrame(all_tweets)
+
+
+def is_user_valid(api: tweepy.API, user: tweepy.User, retry_count: int = 0) -> bool:
+    if user.statuses_count > 100 and user.followers_count >= 1000:
+        try:
+            last_100_tweet = api.user_timeline(user_id=user.id, count=100)
+            if (
+                all(t.created_at >= datetime(2022, 1, 1, tzinfo=timezone.utc) for t in last_100_tweet)
+                and sum(t.lang == "tr" for t in last_100_tweet) > 50
+            ):
+                return True
+        except tweepy.errors.Unauthorized:
+            print(f"Received Unauthorized Error for user with screen name: {user.screen_name}")
+        except IndexError:
+            print(f"The tweets of user with screen name {user.screen_name} can't be fetched")
+        except tweepy.errors.TweepyException as e:  # gracefully connect after rate-limiting
+            if retry_count > 10:
+                raise e
+            retry_count += 1
+            print(f"Received TweepyException Error, retrying one more time: retry count {retry_count}. \n\n Error: {e}")
+            time.sleep(1)
+            return is_user_valid(api, user, retry_count)
+    return False

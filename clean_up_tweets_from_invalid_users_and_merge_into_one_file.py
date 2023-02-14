@@ -21,7 +21,7 @@ for file in Path("Tweets").iterdir():
         df_tmp = pd.read_csv(file)
     except pd.errors.EmptyDataError:
         continue
-
+    df_tmp["author"] = file.stem
     tweets_df = pd.concat([tweets_df, df_tmp], axis=0, ignore_index=True)
 
 tweets_df.to_csv("all_tweets.csv")

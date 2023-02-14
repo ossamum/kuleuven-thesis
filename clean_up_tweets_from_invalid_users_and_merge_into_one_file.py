@@ -13,3 +13,15 @@ for file in Path("Tweets").iterdir():
 
 file_screen_names = {file.stem for file in Path("Tweets").iterdir()}
 assert not set(valid_screen_names).symmetric_difference(file_screen_names)
+
+tweets_df = pd.DataFrame()
+
+for file in Path("Tweets").iterdir():
+    try:
+        df_tmp = pd.read_csv(file)
+    except pd.errors.EmptyDataError:
+        continue
+
+    tweets_df = pd.concat([tweets_df, df_tmp], axis=0, ignore_index=True)
+
+tweets_df.to_csv("all_tweets.csv")

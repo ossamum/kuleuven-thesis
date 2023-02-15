@@ -25,4 +25,4 @@ for file in Path("Tweets").iterdir():
     tweets_df = pd.concat([tweets_df, df_tmp], axis=0, ignore_index=True)
 
 tweets_df["is_retweet"] = tweets_df.text.str.startswith("RT ")
-tweets_df.to_csv("all_tweets.csv")
+tweets_df.to_csv("all_tweets.csv", lineterminator="\r\n")

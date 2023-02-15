@@ -2,3 +2,7 @@
 __pycache__/
 archive/
 .DS_Store
+*.ipynb_checkpoints/
+Tweets/
+HRA Twitter Accounts.xlsx
+all_tweets.csv

@@ -55,6 +55,7 @@ tweets_df["mentions"] = tweets_df.apply(partial(generate_column_from_dict, "ment
 tweets_df["cashtags"] = tweets_df.apply(partial(generate_column_from_dict, "cashtags", "entities"), axis=1)
 tweets_df["annotations"] = tweets_df.apply(partial(generate_column_from_dict, "annotations", "entities"), axis=1)
 
+# TODO find a way to extract information from edit_controls column
 tweets_df.drop(columns=["public_metrics", "attachments", "entities", "edit_controls"], inplace=True)
 tweets_df["is_retweet"] = tweets_df.text.str.startswith("RT ")
 tweets_df.to_csv("all_tweets.csv", lineterminator="\r\n")

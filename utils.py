@@ -2,7 +2,7 @@ import math
 import time
 from datetime import datetime, timedelta, timezone
 from time import sleep
-
+from tqdm import tqdm
 import pandas as pd
 import tweepy
 
@@ -119,3 +119,18 @@ def is_user_valid(api: tweepy.API, user: tweepy.User, retry_count: int = 0) -> b
             time.sleep(1)
             return is_user_valid(api, user, retry_count)
     return False
+
+
+def get_dict_values(data: pd.DataFrame, column: str) -> pd.DataFrame:
+    data_all = pd.DataFrame()
+
+    for idx, i in tqdm(data[column].items(), total=len(data)):
+        
+        try:
+            data_dict = pd.DataFrame(eval(i), index=[idx])
+            data_all = pd.concat([data_all, data_dict])
+        except:
+            print(i)
+            pass
+
+    return data_all

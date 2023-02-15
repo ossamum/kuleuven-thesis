@@ -5,6 +5,7 @@ openpyxl==3.1.0
 tqdm==4.64.1
 jupyterlab==3.6.1
 ydata-profiling==4.0.0
+ipywidgets==8.0.4
 
 # python packages for formatting
 black==22.12.0

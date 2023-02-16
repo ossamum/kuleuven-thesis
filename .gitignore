@@ -2,9 +2,16 @@
 __pycache__/
 archive/
 .DS_Store
+<<<<<<< HEAD
 .ipynb*
 /master-thesis
 *.pdf
 *.csv
 *.xlsx
 *.pkl
+=======
+*.ipynb_checkpoints/
+Tweets/
+HRA Twitter Accounts.xlsx
+all_tweets.csv
+>>>>>>> 66ab0b8f8c4c100f3779a9dfb456ba262ce7db9a

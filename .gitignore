@@ -2,3 +2,9 @@
 __pycache__/
 archive/
 .DS_Store
+.ipynb*
+/master-thesis
+*.pdf
+*.csv
+*.xlsx
+*.pkl

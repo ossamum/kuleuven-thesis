@@ -6,6 +6,13 @@ tqdm==4.64.1
 jupyterlab==3.6.1
 ydata-profiling==4.0.0
 ipywidgets==8.0.4
+transformers==4.26.1
+torch==1.13.1
+germansentiment==1.1.0
+numpy==1.23.5
+# tensorflow==2.11.0  # for windows
+tensorflow-macos==2.11.0  # for mac
+sentencepiece==0.1.97
 
 # python packages for formatting
 black==22.12.0

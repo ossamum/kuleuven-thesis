@@ -26,3 +26,4 @@ isort==5.11.4
 mypy==0.971
 pre-commit==2.21.0
 types-requests==2.28.11.12
+jupyterlab-code-formatter==1.5.3

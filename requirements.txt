@@ -17,6 +17,9 @@ Unidecode==1.3.6
 nltk==3.8.1
 git+https://github.com/rwalk/gsdmm.git
 scikit-learn==1.2.1 
+shap==0.41.0
+gensim==4.3.1
+feature-engine==1.6.0
 
 
 # python packages for formatting

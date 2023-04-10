@@ -20,7 +20,11 @@ scikit-learn==1.2.1
 shap==0.41.0
 gensim==4.3.1
 feature-engine==1.6.0
-
+spacy==3.5.1
+spacy-langdetect==0.1.2
+googletrans==4.0.0rc1
+# NRCLex==3.0.0
+xgboost==1.7.5
 
 # python packages for formatting
 black==22.12.0

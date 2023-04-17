@@ -52,11 +52,42 @@ corrplot(m, type="upper", order="hclust",
 
 
 
+# EMOTION 
+
+df <- read.csv('dataviz/emotion_dataset.csv')
+
+like <- df %>% 
+  filter(tweet_type == 'standard') %>% 
+  select(-c(tweet_type, retweet_count)) 
+
+quartiles <- quantile(like$like_count, probs=c(.25, .75), na.rm = FALSE)
+iqr <- quartiles[2] - quartiles[1]
+
+
+m <- like %>% 
+  filter(like_count < quartiles[2] + (1.5 * iqr)) %>% 
+  cor()
+
+
+corrplot(m, type="upper", order="hclust",
+         col=brewer.pal(n=8, name="RdYlBu"))
 
 
 
+retweet <- df %>% 
+  select(-c(tweet_type, like_count)) 
 
-bot_like
+quartiles <- quantile(retweet$retweet_count, probs=c(.25, .75), na.rm = FALSE)
+iqr <- quartiles[2] - quartiles[1]
+
+
+m <- retweet %>% 
+  filter(retweet_count < quartiles[2] + (1.5 * iqr)) %>% 
+  cor()
+
+
+corrplot(m, type="upper", order="hclust",
+         col=brewer.pal(n=8, name="RdYlBu"))
 
 
 

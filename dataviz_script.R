@@ -90,9 +90,19 @@ corrplot(m, type="upper", order="hclust",
          col=brewer.pal(n=8, name="RdYlBu"))
 
 
+# RESULTS
+# hour
+df <- read.csv('dataviz/created_at_retweet.csv')
 
-
-
+df %>% 
+  ggplot(aes(hour, retweet_count, fill='cyan')) +
+  stat_summary(fun.data=mean_sdl, geom="bar") +
+  stat_summary(fun.data=mean_cl_boot, geom="errorbar", width=0.3) +
+  labs(title='Retweets by hour', y='Number of retweet') +
+  scale_x_discrete('Hour', limits=seq(0, 23)) +
+  guides(fill = F) +
+  theme_bw()
+  
 
 
 

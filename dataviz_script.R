@@ -5,6 +5,7 @@ library(corrplot)
 library(RColorBrewer)
 library(gridExtra)
 library(grid)
+library(patchwork)
 
 
 # DATA COLLECITON
@@ -24,17 +25,40 @@ df <- read.csv('all_tweets_v15.csv') %>%
                          'F' = 'Female',
                          'M' = 'Male',
                          'ORG' = 'Organization'),
-         Verified = verified_author,
-         Profession = profession_of_author,
-         has_media = as.logical(has_media),
-         has_hashtags = as.logical(has_hashtags),
-         has_mentions = as.logical(has_mentions),
-         Language = recode(new_lang ,
-                           'tr' = 'Turkish',
-                           'en' = 'English',
-                           'short_text' = 'Short text',
-                           'other' = 'Other'),
-         is_trend_topic = ifelse(n_trend_topics > 0, TRUE, FALSE)
+        #  Verified = verified_author,
+        #  Profession = profession_of_author,
+        #  has_media = as.logical(has_media),
+        #  has_hashtags = as.logical(has_hashtags),
+        #  has_mentions = as.logical(has_mentions),
+        #  Language = recode(new_lang ,
+        #                    'tr' = 'Turkish',
+        #                    'en' = 'English',
+        #                    'short_text' = 'Short text',
+        #                    'other' = 'Other'),
+        #  is_trend_topic = ifelse(n_trend_topics > 0, TRUE, FALSE),
+        # created_at_time = created_at %>% as.POSIXct() %>% format('%H'),
+        # political_context = political_context_annotation,
+        Topic = recode(sttm_topic,
+                       "search for justice"= "Search for justice",
+                       "other"= "Other",
+                       "injustice against children"= "Injustice against children",
+                       "decree-law"= "Decree-law",
+                       "lost people"= "Lost people",
+                       "politics"= "Politics",
+                       "dismissal of governmental workers"= "Dismissal of governmental workers",
+                       "inflation, financial instability"= "Inflation, financial instability",
+                       "supreme court"= "Supreme court",
+                       "expressing wishes"= "Expressing wishes",
+                       "death, torture, suicide"= "Death, torture, suicide",
+                       "vulnerable, sick people"= "Vulnerable, sick people",
+                       "irrelevant tweets"= "Irrelevant tweets",
+                       "Uyghurs in China"= "Uyghurs",
+                       "woman rights"= "Woman rights",
+                       "democracy"= "Democracy",
+                       "activism for nature"= "Activism for nature",
+                       "international relations"= "International relations",
+                       "invitation, agenda declaration"= "Invitation, agenda declaration",
+                       "freedom of speech"= "Freedom of speech")
   )
 
 # targets
@@ -337,23 +361,61 @@ bx.like + bx.retweet + bar.tweets + plot_layout(nrow=1, guides = "collect") & th
 
 
 
+# political context
+df.summ <- df %>%
+  group_by(political_context) %>%
+  summarize(
+    Tweets = n()
+  ) 
+
+bx.like <- df %>% 
+  ggplot(aes(x = political_context, color = political_context)) +
+  geom_boxplot(aes(y = log(like_count + 1))) +
+  labs(y='Log of number of likes') +
+  guides(color = 'none') +
+  theme_bw()
+
+bx.retweet <- df %>% 
+  ggplot(aes(x = political_context, color = political_context)) +
+  geom_boxplot(aes(y = log(retweet_count + 1))) +
+  labs(y='Log of number of retweets') +
+  guides(color = 'none') +
+  theme_bw()
+
+bar.tweets <- ggplot(df.summ, aes(x = political_context, y = Tweets, color = political_context, fill = political_context)) +
+  geom_col(colour='black') +
+  geom_text(aes(label = Tweets), vjust = 1.2, colour = 'black') +
+  labs(y='Number of tweets') +
+  theme_bw()
+
+
+bx.like + bx.retweet + bar.tweets + plot_layout(nrow=1, guides = "collect") & theme(axis.title.x=element_blank(), axis.text.x=element_blank())
 
 
 
 # BOT BEHAVIOUR
-df <- read.csv('dataviz/bot_dataset.csv')
 
-like <- df %>% 
-  filter(tweet_type == 'standard') %>% 
-  select(-c(tweet_type, retweet_count)) 
+m <- df %>% 
+  select(like_count,
+         retweet_count,
+         english,
+         universal,
+         eng_astroturf,
+         eng_fake_follower,
+         eng_financial,
+         eng_other,
+         eng_overall,
+         eng_self_declared,
+         eng_spammer,
+         uni_astroturf,
+         uni_fake_follower,
+         uni_financial,
+         uni_other,
+         uni_overall,
+         uni_self_declared,
+         uni_spammer) %>% 
+  cor(method = 'spearman')
 
-quartiles <- quantile(like$like_count, probs=c(.25, .75), na.rm = FALSE)
-iqr <- quartiles[2] - quartiles[1]
-
-
-m <- like %>% 
-  filter(like_count < quartiles[2] + (1.5 * iqr)) %>% 
-  cor()
 
 
 corrplot(m, type="upper", order="hclust",
@@ -403,6 +465,72 @@ corrplot(m, type="upper", order="hclust",
 
 
 
+
+# CREATED AT
+df.summ <- df %>%
+  group_by(created_at_time) %>%
+  summarize(
+    Tweets = n()
+  ) 
+
+bx.like <- df %>% 
+  ggplot(aes(x = created_at_time, color = created_at_time)) +
+  geom_boxplot(aes(y = log(like_count + 1))) +
+  labs(y='Log of number of likes') +
+  guides(color = 'none') +
+  theme_bw()
+
+bx.retweet <- df %>% 
+  ggplot(aes(x = created_at_time, color = created_at_time)) +
+  geom_boxplot(aes(y = log(retweet_count + 1))) +
+  labs(y='Log of number of retweets') +
+  guides(color = 'none') +
+  theme_bw()
+
+bar.tweets <- ggplot(df.summ, aes(x = created_at_time, y = Tweets, color = created_at_time, fill = created_at_time)) +
+  geom_col(colour='black') +
+  labs(y='Number of tweets') +
+  theme_bw()
+
+
+bx.like + bx.retweet + bar.tweets + plot_layout(nrow=3, guides = "collect") & theme(axis.title.x=element_blank(), legend.position = "none")
+
+# TOPIC MODELING
+df$Topic <- factor(df$Topic, levels = rev(sort(unique(df$Topic))))
+
+df.summ <- df %>%
+  group_by(Topic ) %>%
+  summarize(
+    Tweets = n()
+  ) 
+
+bx.like <- df %>% 
+  ggplot(aes(y = Topic, color = Topic)) +
+  geom_boxplot(aes(x = log(like_count + 1))) +
+  labs(y='Log of number of likes') +
+  guides(color = 'none') +
+  theme_bw()
+
+bx.retweet <- df %>% 
+  ggplot(aes(y = Topic, color = Topic)) +
+  geom_boxplot(aes(x = log(retweet_count + 1))) +
+  labs(y='Log of number of retweets') +
+  guides(color = 'none') +
+  theme_bw() +
+  theme(axis.title.y = element_blank(), legend.position = "none", axis.text.y = element_blank())
+
+
+
+bar.tweets <- ggplot(df.summ, aes(y = Topic, x = Tweets, color = Topic, fill = Topic)) +
+  geom_col(colour='black') +
+  labs(y='Number of tweets') +
+  theme_bw()
+
+
+bx.like + bx.retweet + plot_layout(nrow=1, guides = "collect") & theme(axis.title.y=element_blank(), legend.position = "none")
+
+
+
 # RESULTS
 # hour
 df <- read.csv('dataviz/created_at_retweet.csv')
@@ -416,6 +544,11 @@ df %>%
   guides(fill = F) +
   theme_bw()
   
+
+
+
+
+
 
 
 

@@ -9,6 +9,10 @@ archive/
 *.csv
 *.xlsx
 *.pkl
+*.npy
+*.pkl.id2word
+*.pkl.state
+models/gsdmm_model_with_K*
 =======
 *.ipynb_checkpoints/
 Tweets/

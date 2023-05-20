@@ -2,9 +2,10 @@ import math
 import time
 from datetime import datetime, timedelta, timezone
 from time import sleep
-from tqdm import tqdm
+
 import pandas as pd
 import tweepy
+from tqdm import tqdm
 
 from config import (
     TWITTER_API_ACCESS_TOKEN,
@@ -125,12 +126,10 @@ def get_dict_values(data: pd.DataFrame, column: str) -> pd.DataFrame:
     data_all = pd.DataFrame()
 
     for idx, i in tqdm(data[column].items(), total=len(data)):
-        
+
         try:
             data_dict = pd.DataFrame(eval(i), index=[idx])
             data_all = pd.concat([data_all, data_dict])
-        except:
+        except Exception:
             print(i)
-            pass
-
     return data_all

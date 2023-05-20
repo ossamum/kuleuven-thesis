@@ -1,119 +1,97 @@
+import json
 import logging
 import pickle
-import re
 from pathlib import Path
 from typing import cast
 
-import nltk
 import numpy as np
-import spacy
+import pandas as pd
 import streamlit as st
-from nltk.tokenize import word_tokenize
-from spacy_langdetect import LanguageDetector
-from unidecode import unidecode
 
-# create logger
-logger = logging.getLogger("simple_example")
+from features import (
+    create_content_features,
+    create_emotion_features,
+    create_gender_features,
+    create_lang_features_and_lang,
+    create_profession_features,
+    create_sentiment_features,
+    create_sttm_topic_features,
+    create_tfidf_features,
+    create_time_features,
+    create_user_features,
+)
+
+logger = logging.getLogger("app")
 logger.setLevel(logging.DEBUG)
 
-# create console handler and set level to debug
 ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
-
-# create formatter
 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-
-# add formatter to ch
 ch.setFormatter(formatter)
-
-# add ch to logger
 logger.addHandler(ch)
 
 
-model_path = Path("xgboost_best_model_for_likes.pkl")
+model_path = Path("decision_tree_model_for_like_count.pkl")
 with open(model_path, "rb") as f:
     model = pickle.load(f)
 
 with open("x_test.pkl", "rb") as f:
     x_test = pickle.load(f)
 
-with open("models/gsdmm_model_with_K_19", "rb") as fb:
-    sttm_model = pickle.load(fb)
-
-
-def get_lang_detector(nlp, name):
-    return LanguageDetector()
-
-
-nlp = spacy.load("en_core_web_sm")
-spacy.language.Language.factory("language_detector", func=get_lang_detector)
-nlp.add_pipe("language_detector", last=True)
-
-
-stopwords = nltk.corpus.stopwords.words("turkish")
-stopwords = [unidecode(i) for i in stopwords]
-
-
-@st.cache_data
-def get_lang_from_text(tweet_text: str):
-    lang = nlp(tweet_text)._.language
-    return lang["language"]
-
-
-def get_sttm_topic(tweet_text, lang: str) -> str:
-    cluster_to_meaning_mapping = {
-        18: "decree-law",
-        11: "search for justice",
-        15: "dismissal of governmental workers",
-        9: "irrelevant tweets",
-        0: "injustice against children",
-        8: "expressing wishes",
-        2: "politics",
-        13: "woman rights",
-        14: "invitation, agenda declaration",
-        5: "death, torture, suicide",
-        16: "democracy",
-        17: "inflation, financial instability",
-        12: "supreme court",
-        7: "freedom of speech",
-        1: "vulnerable, sick people",
-        4: "internatial relations",
-        3: "Uyghurs in China",
-        10: "lost people",
-        6: "activism for nature",
-    }
-    if lang != "tr":
-        return lang
-    else:
-        # preprocessing
-        tweet_text = tweet_text
-        tweet_text = tweet_text.lower()
-        tweet_text = re.sub("\n", " ", tweet_text)
-        tweet_text = re.sub("#(\w+)[^\w]", " ", tweet_text)  # remove hashtag
-        tweet_text = re.sub("@([A-Za-z0-9_]+)", " ", tweet_text)  # remove mentions
-        tweet_text = re.sub("https://t.co/[A-Za-z0-9]+", " ", tweet_text)  # remove link
-        tweet_text = re.sub("\b\w*khk\w*\b", " ", tweet_text)  # normalise khk words
-        tweet_text = tweet_text.replace("[^\w\s]", "")
-        tweet_text = unidecode(tweet_text)  # remove accents
-        tweet_text = " ".join([word for word in tweet_text.split() if word not in (stopwords)])
-        if len(tweet_text) <= 5:
-            return "too_short_tweet"
-        tokenized_tweet_text = word_tokenize(tweet_text)
-
-        topic_probabilities = sttm_model.score(tokenized_tweet_text)
-        topic_index = np.argmax(topic_probabilities)
-        assert topic_index != sttm_model.K
-
-        return cluster_to_meaning_mapping[topic_index]
-
+with open("ordered_feature_names.json") as f:
+    ordered_feature_names = json.load(f)
 
 # Caching the model for faster loading
 @st.cache_data
-def predict_like_count(tweet_text: str) -> int:
-    lang = get_lang_from_text(tweet_text)
-    sttm_topic = get_sttm_topic(tweet_text, lang)
-    logger.debug(f"Detected lang: {lang}, detected topic: {sttm_topic}")
-    raw_prediction = model.predict(np.expand_dims(x_test[0], axis=0))[0]
+def predict_like_count(tweet_text: str, screen_name: str) -> int:
+    logger.debug(f"Predicting for screen_name={screen_name}, tweet_text={tweet_text}")
+    features = {}
+    features, lang = create_lang_features_and_lang(tweet_text, features)
+    logger.debug(f"Detected lang: {lang}")
+
+    features = create_sttm_topic_features(tweet_text, lang, features)
+    logger.debug("Topic features are calculated")
+
+    features = create_tfidf_features(tweet_text, features)
+    logger.debug("TFIDF features are calculated")
+
+    features = create_profession_features(screen_name, features)
+    logger.debug("Profession features are calculated")
+
+    features = create_gender_features(screen_name, features)
+    logger.debug("Gender features are calculated")
+
+    features = create_user_features(screen_name, features)
+    logger.debug("User features are calculated")
+
+    features = create_emotion_features(tweet_text, lang, features)
+    logger.debug("Emotion features are calculated")
+
+    features = create_content_features(tweet_text, features)
+    logger.debug("Content features are calculated")
+
+    features = create_time_features(features)
+    logger.debug("Time features are calculated")
+
+    features = create_sentiment_features(tweet_text, lang, features)
+    logger.debug("Sentiment features are calculated")
+
+    features = features | {
+        "n_photos": n_photos,
+        "n_videos": n_videos,
+        "n_animated_gif": n_animated_gif,
+        "posted_during_an_important_event": int(posted_during_an_important_event),
+        "political_context_annotation": int(political_context_annotation),
+        "n_trend_topics": n_trend_topics,
+        "n_media_keys": 0,  # All zero during training.
+    }
+    logger.debug("App user inputs features are calculated")
+
+    for k, v in features.items():
+        # if np.isnan(v):
+        print(k, v)
+
+    raw_prediction = model.predict(pd.DataFrame([features], columns=ordered_feature_names))[0]
     return round(cast(float, raw_prediction))
 
 
@@ -126,10 +104,17 @@ st.title("Predict your tweet reaction beforehand")
 st.header("Enter the characteristics of your future tweet:")
 
 tweet_text = st.text_input("Tweet Text:", value="")
-account_screen_name = st.text_input("Twitter Account Screen Name:", value="")
+screen_name = st.text_input("Twitter Account Screen Name:", value="")
+n_photos = st.number_input("Number of photos in your tweet:", min_value=0)
+n_videos = st.number_input("Number of videos in your tweet:", min_value=0)
+n_animated_gif = st.number_input("Number of animated gifs in your tweet:", min_value=0)
+posted_during_an_important_event = st.checkbox("Do you post your tweet during an important event:", value=False)  # TODO
+political_context_annotation = st.checkbox("Do you post a tweet with a political context:", value=False)  # TODO
+n_trend_topics = st.number_input("Number of trend topics in your tweet:", min_value=0)
+
 
 if st.button("Predict Like and Retweet Count"):
-    like_count = predict_like_count(tweet_text)
+    like_count = predict_like_count(tweet_text, screen_name)
     logger.debug(like_count)
     retweet_count = predict_retweet_count()
     st.success(f"The predicted like count of your tweet is {like_count}")

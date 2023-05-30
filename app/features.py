@@ -19,7 +19,7 @@ from regex_patterns import pattern_emoji, pattern_hashtag, pattern_mentions, pat
 from utils import get_tweepy_client
 
 # Load models / artifacts
-with open("models/gsdmm_model_with_K_19", "rb") as fb:
+with open("../models/gsdmm_model_with_K_19", "rb") as fb:
     sttm_model = pickle.load(fb)
 
 with open("tfidf_vectorizer_like_count.pkl", "rb") as fb:

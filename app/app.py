@@ -4,10 +4,8 @@ import pickle
 from pathlib import Path
 from typing import cast
 
-import numpy as np
 import pandas as pd
 import streamlit as st
-
 from features import (
     create_content_features,
     create_emotion_features,
@@ -35,7 +33,7 @@ model_path = Path("decision_tree_model_for_like_count.pkl")
 with open(model_path, "rb") as f:
     model = pickle.load(f)
 
-with open("x_test.pkl", "rb") as f:
+with open("../x_test.pkl", "rb") as f:
     x_test = pickle.load(f)
 
 with open("ordered_feature_names.json") as f:
